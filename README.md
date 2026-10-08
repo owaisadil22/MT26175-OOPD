@@ -152,3 +152,29 @@ Implemented configurable tax rates for print items and electronic resources with
 - `git add include/ src/ README.md`: Staged updated files.
 - `git commit -m "Q6: Implemented print/electronic tax rates with post-tax quota validation"`: Saved local commit.
 - `git push origin main`: Uploaded commit to GitHub repository.
+
+---
+
+## Question 7: Distinct Title Limits per Category
+
+Implemented distinct title limits per category quota to control catalog diversity and prevent over-concentration on single resources.
+
+### Implementation Details:
+- **`include/bookmgmt/Budget.h` & `src/Budget.cpp`**:
+  - Added `std::optional<int> maxTitles` to `Quota` struct.
+  - Added `int titles` tracking to `Usage` struct.
+  - Updated `Budget::evaluate()` and `Budget::commit()` to enforce and increment distinct title limits.
+  - Added `titlesRemaining()` query method.
+- **`include/bookmgmt/Acquisition.h` & `src/Acquisition.cpp`**:
+  - Updated `canPurchase()`, `purchase()`, and `processBatch()` to detect new title acquisitions (`catalog_.holdings(id) == 0`).
+  - Passed `isNewTitle` flag into `Budget::check()` and `Budget::commit()`.
+- **`tests/test_main.cpp`**:
+  - Added `testCategoryTitleLimits()` verifying title quotas, re-orders of existing titles, and exception throwing.
+
+### Terminal Commands Executed for Q7:
+- `cmake -S . -B build`: Configured build directory.
+- `cmake --build build`: Recompiled library and test binaries.
+- `./build/bookmgmt_tests`: Verified unit test suite execution (69/69 passed).
+- `git add include/ src/ tests/ README.md`: Staged updated files.
+- `git commit -m "Q7: Implemented distinct title limits per category quota"`: Saved local commit.
+- `git push origin main`: Uploaded commit to GitHub repository.

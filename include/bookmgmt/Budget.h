@@ -15,13 +15,15 @@
 namespace bookmgmt {
 
 struct Quota {
-    int maxUnits;    // maximum copies/seats that may be bought
-    Money maxSpend;  // maximum money that may be spent
+    int maxUnits;                  // maximum copies/seats that may be bought
+    Money maxSpend;                // maximum money that may be spent
+    std::optional<int> maxTitles;  // Q7: maximum number of distinct titles allowed
 };
 
 struct Usage {
     int units = 0;
     Money spent;
+    int titles = 0;                 // Q7: distinct titles currently held/purchased
 };
 
 class Budget {
@@ -40,20 +42,23 @@ public:
     // Remaining allowance in a category; nullopt means "no quota set".
     std::optional<int> unitsRemaining(ResourceCategory c) const;
     std::optional<Money> spendRemaining(ResourceCategory c) const;
+    std::optional<int> titlesRemaining(ResourceCategory c) const;
 
     // Returns an empty string if the purchase fits, otherwise the reason it
     // does not. Does not change state.
     std::string check(ResourceCategory c, int units, Money cost) const;
+    std::string check(ResourceCategory c, int units, Money cost, bool isNewTitle) const;
 
     // Records a purchase. Throws QuotaExceededError / BudgetExceededError
     // (and changes nothing) if it would not fit.
     void commit(ResourceCategory c, int units, Money cost);
+    void commit(ResourceCategory c, int units, Money cost, bool isNewTitle);
 
     void print(std::ostream& os) const;
 
 private:
     enum class Failure { None, BadInput, Quota, Overall };
-    Failure evaluate(ResourceCategory c, int units, Money cost, std::string& why) const;
+    Failure evaluate(ResourceCategory c, int units, Money cost, std::string& why, bool isNewTitle = false) const;
 
     Money total_;
     Money spent_;
