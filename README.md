@@ -178,3 +178,27 @@ Implemented distinct title limits per category quota to control catalog diversit
 - `git add include/ src/ tests/ README.md`: Staged updated files.
 - `git commit -m "Q7: Implemented distinct title limits per category quota"`: Saved local commit.
 - `git push origin main`: Uploaded commit to GitHub repository.
+
+---
+
+## Question 8: Cancellation
+
+Implemented cancellation of approved orders with full refunds to budget and quota usage, reduced holdings, and history auditing.
+
+### Implementation Details:
+- **`include/bookmgmt/Budget.h` & `src/Budget.cpp`**:
+  - Added `refund()` method to revert spent amount, units, and title counts.
+- **`include/bookmgmt/Acquisition.h` & `src/Acquisition.cpp`**:
+  - Added `isCancellation` field to `PurchaseRecord`.
+  - Implemented `cancelOrder(std::size_t orderNo)` to reduce catalog holdings, invoke budget refunds, and append a cancellation record to history.
+  - Updated `totalSpent()` and `printReport()` to accurately calculate and display net expenditure.
+- **`tests/test_main.cpp`**:
+  - Added `testCancellation()` verifying holding updates, budget refunds, history records, and exception throwing on invalid cancellations.
+
+### Terminal Commands Executed for Q8:
+- `cmake -S . -B build`: Configured build directory.
+- `cmake --build build`: Recompiled library and test binaries.
+- `./build/bookmgmt_tests`: Verified unit test suite execution.
+- `git add include/ src/ tests/ README.md`: Staged updated files.
+- `git commit -m "Q8: Implemented order cancellation with budget refund and history tracking"`: Saved local commit.
+- `git push origin main`: Uploaded commit to GitHub repository.

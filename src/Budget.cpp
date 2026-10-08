@@ -110,6 +110,16 @@ void Budget::commit(ResourceCategory c, int units, Money cost, bool isNewTitle) 
     }
 }
 
+void Budget::refund(ResourceCategory c, int units, Money cost, bool titleRemoved) {
+    spent_ -= cost;
+    auto& u = usage_[c];
+    u.units -= units;
+    u.spent -= cost;
+    if (titleRemoved && u.titles > 0) {
+        u.titles -= 1;
+    }
+}
+
 void Budget::print(std::ostream& os) const {
     os << "=== BUDGET REPORT ===\n"
        << "Total: " << total_ << " | Spent: " << spent_ << " | Remaining: " << remaining() << "\n";

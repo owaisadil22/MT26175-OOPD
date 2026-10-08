@@ -25,6 +25,7 @@ struct PurchaseRecord {
     Money cost;
     bool approved;
     std::string reason;
+    bool isCancellation = false;  // Q8: track if record is a cancellation
 };
 
 class AcquisitionManager {
@@ -38,6 +39,9 @@ public:
 
     const PurchaseRecord& purchase(const std::string& id, int quantity);
 
+    // Q8: Cancel an approved order
+    const PurchaseRecord& cancelOrder(std::size_t orderNo);
+
     std::vector<PurchaseRecord> processBatch(
         const std::vector<PurchaseRequest>& reqs);
 
@@ -49,7 +53,7 @@ public:
 
 private:
     PurchaseRecord& record(const Resource* r, const std::string& id, int qty,
-                          Money cost, bool approved, std::string reason);
+                          Money cost, bool approved, std::string reason, bool isCancellation = false);
 
     Catalog& catalog_;
     Budget& budget_;

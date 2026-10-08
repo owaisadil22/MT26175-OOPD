@@ -176,14 +176,40 @@ static void testCategoryTitleLimits() {
     CHECK(acq.canPurchase("B1", 1));
     acq.purchase("B1", 1);
 
-    // Buying more units of the SAME title succeeds (distinct title count remains 1)
+    // Second purchase of SAME title succeeds
     CHECK(acq.canPurchase("B1", 1));
 
-    // Buying a DIFFERENT title fails because maxTitles quota is 1
+    // DIFFERENT title fails because maxTitles = 1
     std::string reason;
     CHECK(!acq.canPurchase("B2", 1, &reason));
     CHECK(reason.find("title") != std::string::npos);
     CHECK_THROWS(acq.purchase("B2", 1), QuotaExceededError);
+}
+
+static void testCancellation() {
+    Catalog c;
+    c.emplace<Book>("B1", "Book One", std::vector<std::string>{"Author A"}, "111", "Publisher", 2020, Money::of(100));
+
+    Budget b(Money::of(1000));
+    b.setQuota(ResourceCategory::Book, {5, Money::of(500)});
+    AcquisitionManager acq(c, b);
+
+    const auto& order = acq.purchase("B1", 2);
+    std::size_t orderNo = order.orderNo;
+    CHECK(c.holdings("B1") == 2);
+    CHECK(b.spent() == Money::of(200));
+
+    // Cancel order
+    const auto& cancelRec = acq.cancelOrder(orderNo);
+    CHECK(cancelRec.isCancellation);
+    CHECK(c.holdings("B1") == 0);
+    CHECK(b.spent() == Money::of(0));
+    CHECK(acq.totalSpent() == Money::of(0));
+    CHECK(acq.history().size() == 2);  // Original purchase + cancellation record
+
+    // Trying to cancel invalid or already cancelled orders throws
+    CHECK_THROWS(acq.cancelOrder(999), NotFoundError);
+    CHECK_THROWS(acq.cancelOrder(cancelRec.orderNo), std::invalid_argument);
 }
 
 int main() {
@@ -193,6 +219,7 @@ int main() {
     testBudget();
     testAcquisition();
     testCategoryTitleLimits();
+    testCancellation();
     std::cout << (g_checks - g_failures) << "/" << g_checks << " checks passed\n";
     return g_failures == 0 ? 0 : 1;
 }

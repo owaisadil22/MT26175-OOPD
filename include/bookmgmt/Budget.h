@@ -1,8 +1,5 @@
 #pragma once
 // Budget: an overall spending limit plus optional per-category purchase quotas.
-//
-// A quota caps how many units (copies/seats) and how much money may be spent on
-// one category. Categories with no quota are limited only by the total budget.
 
 #include <iosfwd>
 #include <map>
@@ -39,20 +36,18 @@ public:
     std::optional<Quota> quotaFor(ResourceCategory c) const;
     Usage usageFor(ResourceCategory c) const;
 
-    // Remaining allowance in a category; nullopt means "no quota set".
     std::optional<int> unitsRemaining(ResourceCategory c) const;
     std::optional<Money> spendRemaining(ResourceCategory c) const;
     std::optional<int> titlesRemaining(ResourceCategory c) const;
 
-    // Returns an empty string if the purchase fits, otherwise the reason it
-    // does not. Does not change state.
     std::string check(ResourceCategory c, int units, Money cost) const;
     std::string check(ResourceCategory c, int units, Money cost, bool isNewTitle) const;
 
-    // Records a purchase. Throws QuotaExceededError / BudgetExceededError
-    // (and changes nothing) if it would not fit.
     void commit(ResourceCategory c, int units, Money cost);
     void commit(ResourceCategory c, int units, Money cost, bool isNewTitle);
+
+    // Q8: Refund spent budget and quota usage
+    void refund(ResourceCategory c, int units, Money cost, bool titleRemoved = false);
 
     void print(std::ostream& os) const;
 
