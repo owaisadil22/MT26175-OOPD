@@ -22,6 +22,9 @@ public:
 
     ResourceCategory category() const override { return ResourceCategory::Book; }
 
+    // Override costFor to apply Hardcover surcharge
+    Money costFor(int quantity) const override;
+
 protected:
     void printDetails(std::ostream& os) const override;
 

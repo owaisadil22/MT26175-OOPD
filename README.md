@@ -90,3 +90,21 @@ Implemented `AudioBook` and `Thesis` resource classes with base class choices an
 - `git add include/ src/ README.md`: Staged header, source, and documentation files.
 - `git commit -m "Q3: Implemented AudioBook and Thesis resource classes and updated README"`: Recorded local commit.
 - `git push origin main`: Pushed changes to GitHub repository.
+
+---
+
+## Question 4: Hardcover Books Pricing
+
+Implemented 20% surcharge calculation for Hardcover books in `Book::costFor(quantity)`.
+
+### Implementation Details:
+- **include/bookmgmt/Book.h**: Added `Money costFor(int quantity) const override;`.
+- **src/Book.cpp**: Implemented `costFor(quantity)` to compute base cost (`unitPrice * quantity`) and apply a 20% surcharge using `minorUnits()` and `Money::fromMinor()` when `binding_ == Binding::Hardcover`.
+
+### Terminal Commands Executed for Q4:
+- `cmake -S . -B build`: Configured build system.
+- `cmake --build build`: Recompiled static library and executables.
+- `./build/bookmgmt_tests`: Verified unit test suite execution.
+- `git add include/ src/ README.md`: Staged updated files.
+- `git commit -m "Q4: Implemented Hardcover 20% surcharge pricing and updated README"`: Saved local commit.
+- `git push origin main`: Uploaded commits to GitHub repository.
