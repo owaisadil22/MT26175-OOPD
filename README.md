@@ -130,3 +130,25 @@ Implemented bulk discount rules for print items and electronic resources.
 - `git add include/ src/ README.md`: Staged updated files.
 - `git commit -m "Q5: Implemented bulk discounts for print items and electronic resources"`: Saved local commit.
 - `git push origin main`: Uploaded commits to GitHub repository.
+
+---
+
+## Question 6: Taxes
+
+Implemented configurable tax rates for print items and electronic resources with post-tax quota validation and pre/post-tax reporting.
+
+### Implementation Details:
+- **`include/bookmgmt/Acquisition.h` & `src/Acquisition.cpp`**:
+  - Added `setPrintTaxRate()` and `setElectronicTaxRate()` to `AcquisitionManager`.
+  - Added `taxFor()`, `preTaxCost()`, and `postTaxCost()` helper methods.
+  - Updated `canPurchase()` and `purchase()` to check quotas and budget limits against post-tax costs.
+  - Updated `processBatch()` to catch invalid requests gracefully without adding unapproved records on thrown exceptions.
+  - Extended `PurchaseRecord` and `printReport()` to record and display pre-tax cost, tax amount, and post-tax cost.
+
+### Terminal Commands Executed for Q6:
+- `cmake -S . -B build`: Configured build directory.
+- `cmake --build build`: Recompiled library and test binaries.
+- `./build/bookmgmt_tests`: Verified unit test suite execution (64/64 passed).
+- `git add include/ src/ README.md`: Staged updated files.
+- `git commit -m "Q6: Implemented print/electronic tax rates with post-tax quota validation"`: Saved local commit.
+- `git push origin main`: Uploaded commit to GitHub repository.
