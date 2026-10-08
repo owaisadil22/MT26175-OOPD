@@ -120,6 +120,47 @@ void Budget::refund(ResourceCategory c, int units, Money cost, bool titleRemoved
     }
 }
 
+// Q9 Department Methods
+void Budget::setDepartmentBudget(const std::string& dept, Money total) {
+    deptBudgets_.emplace(dept, Budget(total));
+}
+
+void Budget::setDepartmentQuota(const std::string& dept, ResourceCategory c, Quota q) {
+    auto it = deptBudgets_.find(dept);
+    if (it != deptBudgets_.end()) {
+        it->second.setQuota(c, q);
+    }
+}
+
+std::string Budget::checkDepartment(const std::string& dept, ResourceCategory c, int units, Money cost, bool isNewTitle) const {
+    auto it = deptBudgets_.find(dept);
+    if (it == deptBudgets_.end()) {
+        return "Department budget not found: " + dept;
+    }
+    std::string whyDept = it->second.check(c, units, cost, isNewTitle);
+    if (!whyDept.empty()) {
+        return "Department [" + dept + "]: " + whyDept;
+    }
+    return check(c, units, cost, isNewTitle);
+}
+
+void Budget::commitDepartment(const std::string& dept, ResourceCategory c, int units, Money cost, bool isNewTitle) {
+    auto it = deptBudgets_.find(dept);
+    if (it == deptBudgets_.end()) {
+        throw NotFoundError("Department budget not found: " + dept);
+    }
+    it->second.commit(c, units, cost, isNewTitle);
+    commit(c, units, cost, isNewTitle);
+}
+
+void Budget::refundDepartment(const std::string& dept, ResourceCategory c, int units, Money cost, bool titleRemoved) {
+    auto it = deptBudgets_.find(dept);
+    if (it != deptBudgets_.end()) {
+        it->second.refund(c, units, cost, titleRemoved);
+    }
+    refund(c, units, cost, titleRemoved);
+}
+
 void Budget::print(std::ostream& os) const {
     os << "=== BUDGET REPORT ===\n"
        << "Total: " << total_ << " | Spent: " << spent_ << " | Remaining: " << remaining() << "\n";

@@ -14,6 +14,7 @@ namespace bookmgmt {
 struct PurchaseRequest {
     std::string resourceId;
     int quantity;
+    std::string department = "";  // Q9: Department charging the purchase
 };
 
 struct PurchaseRecord {
@@ -26,6 +27,7 @@ struct PurchaseRecord {
     bool approved;
     std::string reason;
     bool isCancellation = false;  // Q8: track if record is a cancellation
+    std::string department = "";  // Q9: Department name
 };
 
 class AcquisitionManager {
@@ -35,11 +37,10 @@ public:
     Money quote(const std::string& id, int quantity) const;
 
     bool canPurchase(const std::string& id, int quantity,
-                    std::string* reason = nullptr) const;
+                    std::string* reason = nullptr, const std::string& dept = "") const;
 
-    const PurchaseRecord& purchase(const std::string& id, int quantity);
+    const PurchaseRecord& purchase(const std::string& id, int quantity, const std::string& dept = "");
 
-    // Q8: Cancel an approved order
     const PurchaseRecord& cancelOrder(std::size_t orderNo);
 
     std::vector<PurchaseRecord> processBatch(
@@ -53,7 +54,8 @@ public:
 
 private:
     PurchaseRecord& record(const Resource* r, const std::string& id, int qty,
-                          Money cost, bool approved, std::string reason, bool isCancellation = false);
+                          Money cost, bool approved, std::string reason,
+                          bool isCancellation = false, std::string dept = "");
 
     Catalog& catalog_;
     Budget& budget_;

@@ -49,6 +49,13 @@ public:
     // Q8: Refund spent budget and quota usage
     void refund(ResourceCategory c, int units, Money cost, bool titleRemoved = false);
 
+    // Q9: Department budgets and quotas
+    void setDepartmentBudget(const std::string& dept, Money total);
+    void setDepartmentQuota(const std::string& dept, ResourceCategory c, Quota q);
+    std::string checkDepartment(const std::string& dept, ResourceCategory c, int units, Money cost, bool isNewTitle = false) const;
+    void commitDepartment(const std::string& dept, ResourceCategory c, int units, Money cost, bool isNewTitle = false);
+    void refundDepartment(const std::string& dept, ResourceCategory c, int units, Money cost, bool titleRemoved = false);
+
     void print(std::ostream& os) const;
 
 private:
@@ -59,6 +66,9 @@ private:
     Money spent_;
     std::map<ResourceCategory, Quota> quotas_;
     std::map<ResourceCategory, Usage> usage_;
+
+    // Q9 Data structures
+    std::map<std::string, Budget> deptBudgets_;
 };
 
 }  // namespace bookmgmt

@@ -17,7 +17,7 @@ Money AcquisitionManager::quote(const std::string& id, int quantity) const {
 }
 
 bool AcquisitionManager::canPurchase(const std::string& id, int quantity,
-                                     std::string* reason) const {
+                                     std::string* reason, const std::string& dept) const {
     if (quantity <= 0) {
         if (reason) *reason = "quantity must be > 0";
         return false;
@@ -30,7 +30,11 @@ bool AcquisitionManager::canPurchase(const std::string& id, int quantity,
 
     bool isNewTitle = (catalog_.holdings(id) == 0);
     Money cost = r->costFor(quantity);
-    std::string why = budget_.check(r->category(), quantity, cost, isNewTitle);
+    
+    std::string why = dept.empty() 
+        ? budget_.check(r->category(), quantity, cost, isNewTitle)
+        : budget_.checkDepartment(dept, r->category(), quantity, cost, isNewTitle);
+
     if (!why.empty()) {
         if (reason) *reason = why;
         return false;
@@ -39,7 +43,7 @@ bool AcquisitionManager::canPurchase(const std::string& id, int quantity,
 }
 
 const PurchaseRecord& AcquisitionManager::purchase(const std::string& id,
-                                                   int quantity) {
+                                                   int quantity, const std::string& dept) {
     if (quantity <= 0) throw std::invalid_argument("quantity must be > 0");
 
     const Resource* r = catalog_.find(id);
@@ -48,7 +52,10 @@ const PurchaseRecord& AcquisitionManager::purchase(const std::string& id,
     Money cost = r->costFor(quantity);
     bool isNewTitle = (catalog_.holdings(id) == 0);
 
-    std::string why = budget_.check(r->category(), quantity, cost, isNewTitle);
+    std::string why = dept.empty() 
+        ? budget_.check(r->category(), quantity, cost, isNewTitle)
+        : budget_.checkDepartment(dept, r->category(), quantity, cost, isNewTitle);
+
     if (!why.empty()) {
         if (why.find("Quota") != std::string::npos || why.find("quota") != std::string::npos) {
             throw QuotaExceededError(why);
@@ -56,10 +63,14 @@ const PurchaseRecord& AcquisitionManager::purchase(const std::string& id,
         throw BudgetExceededError(why);
     }
 
-    budget_.commit(r->category(), quantity, cost, isNewTitle);
+    if (dept.empty()) {
+        budget_.commit(r->category(), quantity, cost, isNewTitle);
+    } else {
+        budget_.commitDepartment(dept, r->category(), quantity, cost, isNewTitle);
+    }
     catalog_.addHoldings(id, quantity);
 
-    return record(r, id, quantity, cost, true, "");
+    return record(r, id, quantity, cost, true, "", false, dept);
 }
 
 const PurchaseRecord& AcquisitionManager::cancelOrder(std::size_t orderNo) {
@@ -84,11 +95,15 @@ const PurchaseRecord& AcquisitionManager::cancelOrder(std::size_t orderNo) {
     catalog_.addHoldings(it->resourceId, -it->quantity);
     bool titleRemoved = (currentHoldings - it->quantity == 0);
 
-    budget_.refund(it->category, it->quantity, it->cost, titleRemoved);
+    if (it->department.empty()) {
+        budget_.refund(it->category, it->quantity, it->cost, titleRemoved);
+    } else {
+        budget_.refundDepartment(it->department, it->category, it->quantity, it->cost, titleRemoved);
+    }
 
     const Resource* r = catalog_.find(it->resourceId);
     return record(r, it->resourceId, it->quantity, it->cost, true,
-                  "Cancelled Order #" + std::to_string(orderNo), true);
+                  "Cancelled Order #" + std::to_string(orderNo), true, it->department);
 }
 
 std::vector<PurchaseRecord> AcquisitionManager::processBatch(
@@ -99,28 +114,36 @@ std::vector<PurchaseRecord> AcquisitionManager::processBatch(
         if (!r) {
             batchRecords.push_back(record(nullptr, req.resourceId, req.quantity,
                                           Money::fromMinor(0), false,
-                                          "Resource not found: " + req.resourceId));
+                                          "Resource not found: " + req.resourceId, false, req.department));
             continue;
         }
 
         if (req.quantity <= 0) {
             batchRecords.push_back(record(r, req.resourceId, req.quantity,
                                           Money::fromMinor(0), false,
-                                          "quantity must be > 0"));
+                                          "quantity must be > 0", false, req.department));
             continue;
         }
 
         Money cost = r->costFor(req.quantity);
         bool isNewTitle = (catalog_.holdings(req.resourceId) == 0);
-        std::string why = budget_.check(r->category(), req.quantity, cost, isNewTitle);
+        
+        std::string why = req.department.empty()
+            ? budget_.check(r->category(), req.quantity, cost, isNewTitle)
+            : budget_.checkDepartment(req.department, r->category(), req.quantity, cost, isNewTitle);
+
         if (!why.empty()) {
             batchRecords.push_back(
-                record(r, req.resourceId, req.quantity, cost, false, why));
+                record(r, req.resourceId, req.quantity, cost, false, why, false, req.department));
         } else {
-            budget_.commit(r->category(), req.quantity, cost, isNewTitle);
+            if (req.department.empty()) {
+                budget_.commit(r->category(), req.quantity, cost, isNewTitle);
+            } else {
+                budget_.commitDepartment(req.department, r->category(), req.quantity, cost, isNewTitle);
+            }
             catalog_.addHoldings(req.resourceId, req.quantity);
             batchRecords.push_back(
-                record(r, req.resourceId, req.quantity, cost, true, ""));
+                record(r, req.resourceId, req.quantity, cost, true, "", false, req.department));
         }
     }
     return batchRecords;
@@ -138,7 +161,8 @@ Money AcquisitionManager::totalSpent() const {
 PurchaseRecord& AcquisitionManager::record(const Resource* r,
                                             const std::string& id, int qty,
                                             Money cost, bool approved,
-                                            std::string reason, bool isCancellation) {
+                                            std::string reason, bool isCancellation,
+                                            std::string dept) {
     history_.push_back({
         nextOrderNo_++,
         id,
@@ -148,7 +172,8 @@ PurchaseRecord& AcquisitionManager::record(const Resource* r,
         cost,
         approved,
         std::move(reason),
-        isCancellation
+        isCancellation,
+        std::move(dept)
     });
     return history_.back();
 }
@@ -157,8 +182,9 @@ void AcquisitionManager::printReport(std::ostream& os) const {
     os << "=== ACQUISITION REPORT ===\n";
     for (const auto& rec : history_) {
         std::string status = rec.isCancellation ? "CANCELLED" : (rec.approved ? "APPROVED" : "REJECTED");
-        os << "Order #" << rec.orderNo << " [" << status << "] "
-           << rec.resourceId << " (" << rec.quantity << " units) - Cost: " << rec.cost;
+        os << "Order #" << rec.orderNo << " [" << status << "] ";
+        if (!rec.department.empty()) os << "[" << rec.department << "] ";
+        os << rec.resourceId << " (" << rec.quantity << " units) - Cost: " << rec.cost;
         if (!rec.reason.empty()) os << " Reason: " << rec.reason;
         os << "\n";
     }

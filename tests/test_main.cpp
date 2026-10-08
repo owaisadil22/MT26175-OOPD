@@ -192,7 +192,6 @@ static void testCancellation() {
     CHECK(c.holdings("B1") == 2);
     CHECK(b.spent() == Money::of(200));
 
-    // Cancel order
     const auto& cancelRec = acq.cancelOrder(orderNo);
     CHECK(cancelRec.isCancellation);
     CHECK(c.holdings("B1") == 0);
@@ -204,6 +203,26 @@ static void testCancellation() {
     CHECK_THROWS(acq.cancelOrder(cancelRec.orderNo), std::invalid_argument);
 }
 
+static void testDepartmentBudgets() {
+    Catalog c;
+    c.emplace<Book>("B1", "CS Book", std::vector<std::string>{"Author CS"}, "111", "Publisher", 2020, Money::of(100));
+
+    Budget overallBudget(Money::of(2000));
+    overallBudget.setDepartmentBudget("CS", Money::of(500));
+    overallBudget.setDepartmentQuota("CS", ResourceCategory::Book, {3, Money::of(300)});
+
+    AcquisitionManager acq(c, overallBudget);
+
+    CHECK(acq.canPurchase("B1", 2, nullptr, "CS"));
+    const auto& rec = acq.purchase("B1", 2, "CS");
+    CHECK(rec.department == "CS");
+    CHECK(overallBudget.spent() == Money::of(200));
+
+    std::string reason;
+    CHECK(!acq.canPurchase("B1", 4, &reason, "CS"));
+    CHECK(reason.find("CS") != std::string::npos || reason.find("Quota") != std::string::npos);
+}
+
 int main() {
     testMoney();
     testResourcesAndCost();
@@ -212,6 +231,7 @@ int main() {
     testAcquisition();
     testCategoryTitleLimits();
     testCancellation();
+    testDepartmentBudgets();
     std::cout << (g_checks - g_failures) << "/" << g_checks << " checks passed\n";
     return g_failures == 0 ? 0 : 1;
 }

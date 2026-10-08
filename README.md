@@ -225,3 +225,27 @@ Implemented order cancellation functionality for approved purchases.
 - `git add include/ src/ tests/ README.md`: Staged updated files.
 - `git commit -m "Q8: Implemented cancellation of approved orders with refunds"`: Saved local commit.
 - `git push origin main`: Uploaded commits to GitHub repository.
+
+---
+
+## Question 9: Department Budgets
+
+Implemented department-level spending limits and category quotas. Purchase requests name the department to be charged.
+
+### Implementation Details:
+- **`include/bookmgmt/Budget.h` & `src/Budget.cpp`**:
+  - Added department budget and quota mapping (`setDepartmentBudget()`, `setDepartmentQuota()`).
+  - Added department budget checking, committing, and refunding methods (`checkDepartment()`, `commitDepartment()`, `refundDepartment()`).
+- **`include/bookmgmt/Acquisition.h` & `src/Acquisition.cpp`**:
+  - Extended `PurchaseRequest` and `PurchaseRecord` with a `department` field.
+  - Updated `canPurchase()`, `purchase()`, `processBatch()`, and `cancelOrder()` to handle department-attributed purchases.
+- **`tests/test_main.cpp`**:
+  - Added `testDepartmentBudgets()` verifying department quota restrictions and global budget updates.
+
+### Terminal Commands Executed for Q9:
+- `cmake -S . -B build`: Configured build directory.
+- `cmake --build build`: Recompiled library and test binaries.
+- `./build/bookmgmt_tests`: Verified unit test suite execution.
+- `git add include/ src/ tests/ README.md`: Staged updated files.
+- `git commit -m "Q9: Implemented department budgets and quota tracking"`: Saved local commit.
+- `git push origin main`: Uploaded commit to GitHub repository.
