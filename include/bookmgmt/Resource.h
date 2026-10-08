@@ -19,6 +19,8 @@ enum class ResourceCategory { Book,
      ElectronicResource,
      Journal,   // I have added journal
      EBook,
+     AudioBook,
+     Thesis,
     };
 
 const char* categoryName(ResourceCategory c);

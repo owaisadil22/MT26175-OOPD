@@ -66,3 +66,27 @@ cmake --build build
 git add include/ src/ README.md
 git commit -m "Q2: Implemented EBook resource class and updated README"
 git push origin main
+
+---
+
+## Question 3: AudioBook and Thesis Classes
+
+Implemented `AudioBook` and `Thesis` resource classes with base class choices and justifications.
+
+### Implementation Details:
+- **include/bookmgmt/Resource.h & src/Resource.cpp**: Added `AudioBook` and `Thesis` to `ResourceCategory` enum and `categoryName()`.
+- **include/bookmgmt/AudioBook.h**:
+  - Derived from `ElectronicResource` (justified as digital/streaming content accessed per user seat).
+  - Added fields: `narrator_` (`std::string`) and `durationMinutes_` (`int`).
+- **include/bookmgmt/Thesis.h**:
+  - Derived directly from `Resource` (justified as free/open-access academic publications where unitPrice and `costFor()` are 0).
+  - Added fields: `university_`, `degree_`, and `supervisor_`.
+- **include/bookmgmt/bookmgmt.h**: Included `"AudioBook.h"` and `"Thesis.h"`.
+
+### Terminal Commands Executed for Q3:
+- `cmake -S . -B build`: Configured CMake build system.
+- `cmake --build build`: Recompiled library and test binaries.
+- `./build/bookmgmt_tests`: Ran test suite.
+- `git add include/ src/ README.md`: Staged header, source, and documentation files.
+- `git commit -m "Q3: Implemented AudioBook and Thesis resource classes and updated README"`: Recorded local commit.
+- `git push origin main`: Pushed changes to GitHub repository.
