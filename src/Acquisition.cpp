@@ -80,12 +80,10 @@ const PurchaseRecord& AcquisitionManager::cancelOrder(std::size_t orderNo) {
         throw std::invalid_argument("Cannot cancel a cancellation record");
     }
 
-    // Reduce holdings by original quantity
     int currentHoldings = catalog_.holdings(it->resourceId);
     catalog_.addHoldings(it->resourceId, -it->quantity);
     bool titleRemoved = (currentHoldings - it->quantity == 0);
 
-    // Refund budget and category quota usage
     budget_.refund(it->category, it->quantity, it->cost, titleRemoved);
 
     const Resource* r = catalog_.find(it->resourceId);

@@ -1,5 +1,3 @@
-// Minimal self-contained test runner (no external framework needed).
-
 #include <iostream>
 #include <sstream>
 #include <stdexcept>
@@ -59,7 +57,6 @@ static void testResourcesAndCost() {
 
     CHECK(e.category() == ResourceCategory::ElectronicResource);
 
-    // Polymorphism through a base-class reference
     const Resource& r = e;
     CHECK(r.costFor(1) == Money::of(110));
     std::ostringstream os;
@@ -107,10 +104,10 @@ static void testBudget() {
     b.setQuota(ResourceCategory::Book, {5, Money::of(400)});
 
     CHECK(b.check(ResourceCategory::Book, 2, Money::of(200)).empty());
-    CHECK(!b.check(ResourceCategory::Book, 6, Money::of(10)).empty());   // units
-    CHECK(!b.check(ResourceCategory::Book, 1, Money::of(401)).empty());  // spend
-    CHECK(!b.check(ResourceCategory::ElectronicResource, 1, Money::of(1001)).empty());  // overall
-    CHECK(b.check(ResourceCategory::ElectronicResource, 1, Money::of(900)).empty());    // no quota
+    CHECK(!b.check(ResourceCategory::Book, 6, Money::of(10)).empty());
+    CHECK(!b.check(ResourceCategory::Book, 1, Money::of(401)).empty());
+    CHECK(!b.check(ResourceCategory::ElectronicResource, 1, Money::of(1001)).empty());
+    CHECK(b.check(ResourceCategory::ElectronicResource, 1, Money::of(900)).empty());
 
     b.commit(ResourceCategory::Book, 4, Money::of(300));
     CHECK(b.spent() == Money::of(300));
@@ -123,7 +120,7 @@ static void testBudget() {
                  BudgetExceededError);
     CHECK_THROWS(b.commit(ResourceCategory::ElectronicResource, 0, Money::of(1)),
                  std::invalid_argument);
-    CHECK(b.spent() == Money::of(300));  // failed commits changed nothing
+    CHECK(b.spent() == Money::of(300));
 }
 
 static void testAcquisition() {
@@ -148,12 +145,12 @@ static void testAcquisition() {
 
     CHECK_THROWS(acq.purchase("B1", 2), QuotaExceededError);
     CHECK_THROWS(acq.purchase("nope", 1), NotFoundError);
-    CHECK(acq.history().size() == 1);  // exceptions don't record
+    CHECK(acq.history().size() == 1);
 
     auto res = acq.processBatch({{"R1", 10}, {"R1", 100}, {"B1", 1}, {"zzz", 1}, {"B1", 0}});
     CHECK(res.size() == 5);
     CHECK(res[0].approved && res[0].cost == Money::of(150));
-    CHECK(!res[1].approved);  // 1050 > remaining 150
+    CHECK(!res[1].approved);
     CHECK(res[2].approved);
     CHECK(!res[3].approved && res[3].reason.find("not found") != std::string::npos);
     CHECK(!res[4].approved);
@@ -172,14 +169,10 @@ static void testCategoryTitleLimits() {
     b.setQuota(ResourceCategory::Book, {10, Money::of(500), 1});
     AcquisitionManager acq(c, b);
 
-    // First title purchase succeeds
     CHECK(acq.canPurchase("B1", 1));
     acq.purchase("B1", 1);
-
-    // Second purchase of SAME title succeeds
     CHECK(acq.canPurchase("B1", 1));
 
-    // DIFFERENT title fails because maxTitles = 1
     std::string reason;
     CHECK(!acq.canPurchase("B2", 1, &reason));
     CHECK(reason.find("title") != std::string::npos);
@@ -205,9 +198,8 @@ static void testCancellation() {
     CHECK(c.holdings("B1") == 0);
     CHECK(b.spent() == Money::of(0));
     CHECK(acq.totalSpent() == Money::of(0));
-    CHECK(acq.history().size() == 2);  // Original purchase + cancellation record
+    CHECK(acq.history().size() == 2);
 
-    // Trying to cancel invalid or already cancelled orders throws
     CHECK_THROWS(acq.cancelOrder(999), NotFoundError);
     CHECK_THROWS(acq.cancelOrder(cancelRec.orderNo), std::invalid_argument);
 }

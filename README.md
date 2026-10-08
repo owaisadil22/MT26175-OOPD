@@ -202,3 +202,26 @@ Implemented cancellation of approved orders with full refunds to budget and quot
 - `git add include/ src/ tests/ README.md`: Staged updated files.
 - `git commit -m "Q8: Implemented order cancellation with budget refund and history tracking"`: Saved local commit.
 - `git push origin main`: Uploaded commit to GitHub repository.
+
+---
+
+## Question 8: Cancellation
+
+Implemented order cancellation functionality for approved purchases.
+
+### Implementation Details:
+- **`src/Budget.cpp` & `include/bookmgmt/Budget.h`**:
+  - Implemented `refund()` method to reduce spent money and decrement category usage counters.
+- **`src/Acquisition.cpp` & `include/bookmgmt/Acquisition.h`**:
+  - Added `cancelOrder(std::size_t orderNo)` to reduce holdings by the purchased quantity, refund spent budget/quotas, and record a separate cancellation record in history.
+  - Updated `totalSpent()` to subtract cancelled amounts from history.
+- **`tests/test_main.cpp`**:
+  - Added `testCancellation()` test suite to verify refunds, catalog updates, and order history tracking.
+
+### Terminal Commands Executed for Q8:
+- `cmake -S . -B build`: Configured build system.
+- `cmake --build build`: Recompiled static library and executables.
+- `./build/bookmgmt_tests`: Verified unit test suite execution.
+- `git add include/ src/ tests/ README.md`: Staged updated files.
+- `git commit -m "Q8: Implemented cancellation of approved orders with refunds"`: Saved local commit.
+- `git push origin main`: Uploaded commits to GitHub repository.
