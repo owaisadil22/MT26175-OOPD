@@ -108,3 +108,25 @@ Implemented 20% surcharge calculation for Hardcover books in `Book::costFor(quan
 - `git add include/ src/ README.md`: Staged updated files.
 - `git commit -m "Q4: Implemented Hardcover 20% surcharge pricing and updated README"`: Saved local commit.
 - `git push origin main`: Uploaded commits to GitHub repository.
+
+---
+
+## Question 5: Bulk Discounts
+
+Implemented bulk discount rules for print items and electronic resources.
+
+### Implementation Details:
+- **`src/Book.cpp` & `include/bookmgmt/Journal.h`**:
+  - Validated `quantity > 0` (throwing `std::invalid_argument` otherwise).
+  - Applied a 10% discount in `costFor(quantity)` when purchasing 10 or more copies.
+- **`src/ElectronicResource.cpp`**:
+  - Validated `quantity > 0` (throwing `std::invalid_argument` otherwise).
+  - Updated `costFor(quantity)` so that every seat beyond the 50th receives a 50% discount (half price).
+
+### Terminal Commands Executed for Q5:
+- `cmake -S . -B build`: Configured build system.
+- `cmake --build build`: Recompiled static library and executables.
+- `./build/bookmgmt_tests`: Verified unit test suite execution.
+- `git add include/ src/ README.md`: Staged updated files.
+- `git commit -m "Q5: Implemented bulk discounts for print items and electronic resources"`: Saved local commit.
+- `git push origin main`: Uploaded commits to GitHub repository.

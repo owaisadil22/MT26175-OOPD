@@ -36,9 +36,15 @@ public:
     }
 
     Money costFor(int quantity) const override {
-        requirePositive(quantity);
-        return unitPrice() * quantity * subscriptionYears_;
+    Money baseCost = unitPrice() * quantity * subscriptionYears_;
+    std::int64_t totalMinor = baseCost.minorUnits();
+
+    if (quantity >= 10) {
+        totalMinor -= (totalMinor * 10 / 100);
     }
+
+    return Money::fromMinor(totalMinor);
+}
 
     void printDetails(std::ostream& os) const override {
         os << "  ISSN: " << issn_ << "\n"
