@@ -381,3 +381,23 @@ Implemented patron lending for print copies and active session tracking for elec
 - `git add include/ src/ tests/ README.md`: Staged updated files.
 - `git commit -m "Q14: Implemented lending manager for print checkouts and electronic seats"`: Saved local commit.
 - `git push origin main`: Uploaded changes to GitHub repository.
+
+---
+
+## Question 16: Invariants and Code Hardening
+
+Hardened system invariants using `assert()` across core domain modules, verified zero compiler warnings, and ensured 100% test suite stability.
+
+### Implementation Details:
+- **`include/bookmgmt/Budget.h` & `src/Budget.cpp`**:
+  - Included `<cassert>`.
+  - Added invariant checks in constructors, `commit()`, and `refund()` methods to guarantee non-negative spending and non-negative usage metrics.
+- **`tests/test_main.cpp`**:
+  - Validated full test suite against hardened assertions.
+
+### Terminal Commands Executed for Q16:
+- `g++ -std=c++17 -Wall -Wextra -Iinclude src/*.cpp tests/test_main.cpp -o bookmgmt_tests`: Compiled test binary cleanly with zero warnings.
+- `./bookmgmt_tests`: Verified all tests passed cleanly.
+- `git add include/ src/ tests/ README.md`: Staged updated files.
+- `git commit -m "Q16: Added assertions for budget invariants and finalized project"`: Saved local commit.
+- `git push origin main`: Uploaded final project state to GitHub repository.

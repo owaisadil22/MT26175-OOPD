@@ -1,5 +1,6 @@
 #include "bookmgmt/Budget.h"
 
+#include <cassert>
 #include <cmath>
 #include <iomanip>
 #include <ostream>
@@ -8,7 +9,9 @@
 
 namespace bookmgmt {
 
-Budget::Budget(Money total) : total_(total) {}
+Budget::Budget(Money total) : total_(total) {
+    assert(!total_.isNegative() && "Total budget cannot be negative");
+}
 
 void Budget::setQuota(ResourceCategory c, Quota q) {
     quotas_[c] = q;
@@ -109,6 +112,9 @@ void Budget::commit(ResourceCategory c, int units, Money cost, bool isNewTitle) 
     if (isNewTitle) {
         u.titles += 1;
     }
+
+    assert(!spent_.isNegative() && "Spent amount cannot be negative after commit");
+    assert(u.units >= 0 && "Usage units cannot be negative");
 }
 
 void Budget::refund(ResourceCategory c, int units, Money cost, bool titleRemoved) {
@@ -119,6 +125,9 @@ void Budget::refund(ResourceCategory c, int units, Money cost, bool titleRemoved
     if (titleRemoved && u.titles > 0) {
         u.titles -= 1;
     }
+
+    assert(!spent_.isNegative() && "Spent amount cannot be negative after refund");
+    assert(u.units >= 0 && "Usage units cannot be negative after refund");
 }
 
 // Q9 Department Methods
