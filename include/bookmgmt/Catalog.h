@@ -46,6 +46,11 @@ public:
     std::vector<const Resource*> where(
         const std::function<bool(const Resource&)>& pred) const;
 
+    // Q13: Catalogue search queries added per assignment requirements
+    std::vector<const Resource*> searchByAuthor(const std::string& author) const;
+    std::vector<const Resource*> searchByIsbnOrIssn(const std::string& identifier) const;
+    std::vector<const Resource*> searchByYearRange(int startYear, int endYear) const;
+
 private:
     struct Entry {
         std::unique_ptr<Resource> resource;

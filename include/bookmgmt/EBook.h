@@ -2,8 +2,9 @@
 #define BOOKMGMT_EBOOK_H
 
 #include "ElectronicResource.h"
-#include <vector>
+#include <ostream>
 #include <string>
+#include <vector>
 
 namespace bookmgmt {
 
