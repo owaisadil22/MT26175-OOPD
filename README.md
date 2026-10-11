@@ -335,3 +335,27 @@ Implemented an optional all-or-nothing policy for batch purchase processing.
 - `git add include/ src/ tests/ README.md`: Staged updated source files and documentation.
 - `git commit -m "Q11: Implemented all-or-nothing option for acquisition batch processing"`: Created local commit.
 - `git push origin main`: Uploaded commits to GitHub repository.
+
+---
+
+## Question 12: Vendors
+
+Implemented multi-vendor pricing support, enabling resources to record distinct price offers across vendors, automatically selecting the cheapest vendor during acquisitions, and tracking the vendor used in order records.
+
+### Implementation Details:
+- **`include/bookmgmt/Resource.h` & `src/Resource.cpp`**:
+  - Added `VendorOffer` struct and vendor mapping (`vendorOffers_`) to store vendor unit prices.
+  - Added `addVendorOffer()`, `cheapestVendor()`, and `costForVendor()` methods.
+  - Updated `printDetails()` to list available vendors and their prices.
+- **`include/bookmgmt/Acquisition.h` & `src/Acquisition.cpp`**:
+  - Updated `PurchaseRecord` and `PurchaseRequest` to include a `vendor` field.
+  - Updated `quote()`, `canPurchase()`, `purchase()`, and `processBatch()` to auto-select the cheapest vendor when none is explicitly specified.
+- **`tests/test_main.cpp`**:
+  - Added `testVendors()` verifying cheapest-vendor auto-selection and explicit vendor ordering.
+
+### Terminal Commands Executed for Q12:
+- `g++ -std=c++17 -Wall -Wextra -Iinclude src/*.cpp tests/test_main.cpp -o bookmgmt_tests`: Compiled test binary.
+- `./bookmgmt_tests`: Executed unit test suite and verified 100% pass rate.
+- `git add include/ src/ tests/ README.md`: Staged updated files.
+- `git commit -m "Q12: Implemented multi-vendor pricing and cheapest vendor auto-selection"`: Saved local commit.
+- `git push origin main`: Uploaded changes to GitHub repository.

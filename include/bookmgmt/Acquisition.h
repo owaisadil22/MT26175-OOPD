@@ -15,6 +15,7 @@ struct PurchaseRequest {
     std::string resourceId;
     int quantity;
     std::string department = "";  // Q9: Department charging the purchase
+    std::string vendor = "";      // Q12: Preferred vendor (optional)
 };
 
 struct PurchaseRecord {
@@ -28,18 +29,21 @@ struct PurchaseRecord {
     std::string reason;
     bool isCancellation = false;  // Q8: track if record is a cancellation
     std::string department = "";  // Q9: Department name
+    std::string vendor = "Default"; // Q12: Vendor name used
 };
 
 class AcquisitionManager {
 public:
     AcquisitionManager(Catalog& catalog, Budget& budget);
 
-    Money quote(const std::string& id, int quantity) const;
+    Money quote(const std::string& id, int quantity, const std::string& vendor = "") const;
 
     bool canPurchase(const std::string& id, int quantity,
-                    std::string* reason = nullptr, const std::string& dept = "") const;
+                    std::string* reason = nullptr, const std::string& dept = "",
+                    const std::string& vendor = "") const;
 
-    const PurchaseRecord& purchase(const std::string& id, int quantity, const std::string& dept = "");
+    const PurchaseRecord& purchase(const std::string& id, int quantity,
+                                   const std::string& dept = "", const std::string& vendor = "");
 
     // Q8: Cancel an approved order
     const PurchaseRecord& cancelOrder(std::size_t orderNo);
@@ -57,7 +61,8 @@ public:
 private:
     PurchaseRecord& record(const Resource* r, const std::string& id, int qty,
                           Money cost, bool approved, std::string reason,
-                          bool isCancellation = false, std::string dept = "");
+                          bool isCancellation = false, std::string dept = "",
+                          std::string vendor = "Default");
 
     Catalog& catalog_;
     Budget& budget_;

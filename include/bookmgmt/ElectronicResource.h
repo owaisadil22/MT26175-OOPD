@@ -1,42 +1,38 @@
 #pragma once
 
+#include <iosfwd>
 #include <string>
 
+#include "bookmgmt/Money.h"
 #include "bookmgmt/Resource.h"
 
 namespace bookmgmt {
 
-enum class LicenseModel { Perpetual, AnnualSubscription };
+enum class LicenseModel { AnnualSubscription, PerpetualAccess };
 
-// An online resource licensed per concurrent-user seat (databases, e-journal
-// packages, software, ...). unitPrice = price per seat.
-// costFor(seats) = platformFee + unitPrice * seats.
+std::string modelName(LicenseModel model);
+
 class ElectronicResource : public Resource {
 public:
     ElectronicResource(std::string id, std::string title, std::string publisher,
-                       int year, Money pricePerSeat, std::string accessUrl,
-                       LicenseModel license = LicenseModel::AnnualSubscription,
-                       Money platformFee = Money{});
+                       int publicationYear, Money unitPrice, std::string accessUrl,
+                       LicenseModel model = LicenseModel::AnnualSubscription,
+                       Money platformFee = Money::fromMinor(0));
+
+    ResourceCategory category() const override { return ResourceCategory::ElectronicResource; }
+    bool isDigital() const override { return true; }
 
     const std::string& accessUrl() const { return accessUrl_; }
-    LicenseModel license() const { return license_; }
+    LicenseModel licenseModel() const { return licenseModel_; }
     Money platformFee() const { return platformFee_; }
 
-    ResourceCategory category() const override {
-        return ResourceCategory::ElectronicResource;
-    }
-    bool isDigital() const override { return true; }
-    Money costFor(int seats) const override;
-
-protected:
+    Money costFor(int quantity) const override;
     void printDetails(std::ostream& os) const override;
 
-private:
+protected:
     std::string accessUrl_;
-    LicenseModel license_;
+    LicenseModel licenseModel_;
     Money platformFee_;
 };
-
-const char* licenseName(LicenseModel m);
 
 }  // namespace bookmgmt

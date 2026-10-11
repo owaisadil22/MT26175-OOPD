@@ -245,7 +245,6 @@ static void testAllOrNothingBatch() {
     Budget b(Money::of(250));
     AcquisitionManager acq(c, b);
 
-    // B1 costs 100, B2 costs 200 (Total = 300, which exceeds total budget 250)
     std::vector<PurchaseRequest> reqs = {{"B1", 1}, {"B2", 2}};
 
     auto res = acq.processBatch(reqs, true);
@@ -255,6 +254,27 @@ static void testAllOrNothingBatch() {
     CHECK(c.holdings("B1") == 0);
     CHECK(c.holdings("B2") == 0);
     CHECK(b.spent() == Money::of(0));
+}
+
+static void testVendors() {
+    Catalog c;
+    auto& b = c.emplace<Book>("B1", "Multivendor Book", std::vector<std::string>{"Author V"}, "111", "Pub", 2020, Money::of(100));
+    b.addVendorOffer("ExpensiveCorp", Money::of(120));
+    b.addVendorOffer("DiscountBooks", Money::of(80));
+
+    Budget budget(Money::of(1000));
+    AcquisitionManager acq(c, budget);
+
+    // Auto-select cheapest vendor (DiscountBooks @ 80 each)
+    CHECK(acq.quote("B1", 2) == Money::of(160));
+    const auto& rec1 = acq.purchase("B1", 2);
+    CHECK(rec1.vendor == "DiscountBooks");
+    CHECK(rec1.cost == Money::of(160));
+
+    // Explicit vendor selection
+    const auto& rec2 = acq.purchase("B1", 1, "", "ExpensiveCorp");
+    CHECK(rec2.vendor == "ExpensiveCorp");
+    CHECK(rec2.cost == Money::of(120));
 }
 
 int main() {
@@ -268,6 +288,7 @@ int main() {
     testDepartmentBudgets();
     testRollover();
     testAllOrNothingBatch();
+    testVendors();
     std::cout << (g_checks - g_failures) << "/" << g_checks << " checks passed\n";
     return g_failures == 0 ? 0 : 1;
 }
