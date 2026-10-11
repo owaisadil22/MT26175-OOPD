@@ -223,6 +223,21 @@ static void testDepartmentBudgets() {
     CHECK(reason.find("CS") != std::string::npos || reason.find("Quota") != std::string::npos);
 }
 
+static void testRollover() {
+    Budget thisYear(Money::of(1000));
+    thisYear.setQuota(ResourceCategory::Book, {5, Money::of(500)});
+    thisYear.commit(ResourceCategory::Book, 2, Money::of(200)); // unspent = 800
+
+    // Carry over 50% of 800 = 400. New total = 1000 + 400 = 1400.
+    Budget nextYear = thisYear.rollover(Money::of(1000), 50.0);
+    CHECK(nextYear.total() == Money::of(1400));
+    CHECK(nextYear.spent() == Money::of(0));
+    CHECK(nextYear.quotaFor(ResourceCategory::Book).has_value());
+
+    CHECK_THROWS(thisYear.rollover(Money::of(1000), -5.0), std::invalid_argument);
+    CHECK_THROWS(thisYear.rollover(Money::of(1000), 105.0), std::invalid_argument);
+}
+
 int main() {
     testMoney();
     testResourcesAndCost();
@@ -232,6 +247,7 @@ int main() {
     testCategoryTitleLimits();
     testCancellation();
     testDepartmentBudgets();
+    testRollover();
     std::cout << (g_checks - g_failures) << "/" << g_checks << " checks passed\n";
     return g_failures == 0 ? 0 : 1;
 }

@@ -249,3 +249,69 @@ Implemented department-level spending limits and category quotas. Purchase reque
 - `git add include/ src/ tests/ README.md`: Staged updated files.
 - `git commit -m "Q9: Implemented department budgets and quota tracking"`: Saved local commit.
 - `git push origin main`: Uploaded commit to GitHub repository.
+
+---
+
+## Question 10: Year-end Rollover
+
+Implemented year-end budget rollover functionality, carrying forward a configurable percentage of unspent funds to next year's budget.
+
+### Implementation Details:
+- **`include/bookmgmt/Budget.h` & `src/Budget.cpp`**:
+  - Implemented `rollover(Money nextYearBase, double carryoverPercentage)` method.
+  - Calculated carryover amount from remaining funds (`unspent * percentage / 100.0`) and added it to the next year's base budget.
+  - Carried forward active category quotas and department budgets to the new fiscal year instance.
+  - Validated that `carryoverPercentage` is strictly between `0.0` and `100.0`.
+- **`tests/test_main.cpp`**:
+  - Added `testRollover()` verifying carryover calculation, reset usage counters, preserved quotas, and input bounds checking.
+
+### Terminal Commands Executed for Q10:
+- `g++ -std=c++17 -Wall -Wextra -Iinclude src/*.cpp tests/test_main.cpp -o bookmgmt_tests`: Compiled test binary directly using g++.
+- `./bookmgmt_tests`: Verified unit test suite execution.
+- `git add include/ src/ tests/ README.md`: Staged updated files.
+- `git commit -m "Q10: Implemented year-end budget rollover with configurable carryover percentage"`: Saved local commit.
+- `git push origin main`: Uploaded commits to GitHub repository.
+
+---
+
+## Question 10: Year-end Rollover
+
+Implemented year-end budget rollover functionality, carrying forward a configurable percentage of unspent funds to next year's budget.
+
+### Implementation Details:
+- **`include/bookmgmt/Budget.h` & `src/Budget.cpp`**:
+  - Added `rollover(Money nextYearBase, double carryoverPercentage)` method to compute and create next year's budget.
+  - Calculated carryover funds from unspent budget (`remaining * percentage / 100.0`) and added them to the base budget.
+  - Recursively carried forward active category quotas and department budgets.
+  - Added strict bounds validation ensuring `carryoverPercentage` is between `0.0` and `100.0`.
+- **`tests/test_main.cpp`**:
+  - Added `testRollover()` verifying carryover math, reset spent usage counters, inherited quotas, and invalid percentage handling.
+
+### Terminal Commands Executed for Q10:
+- `g++ -std=c++17 -Wall -Wextra -Iinclude src/*.cpp tests/test_main.cpp -o bookmgmt_tests`: Compiled test executable directly.
+- `./bookmgmt_tests`: Verified unit test suite execution.
+- `git add include/ src/ tests/ README.md`: Staged updated files.
+- `git commit -m "Q10: Implemented year-end budget rollover with configurable carryover percentage"`: Saved local commit.
+- `git push origin main`: Uploaded commit to GitHub repository.
+
+---
+
+## Question 10: Year-end Rollover
+
+Implemented year-end budget rollover functionality, carrying forward a configurable percentage of unspent funds to next year's budget.
+
+### Implementation Details:
+- **`include/bookmgmt/Budget.h` & `src/Budget.cpp`**:
+  - Added `rollover(Money nextYearBase, double carryoverPercentage)` method to compute and create next year's budget.
+  - Calculated carryover funds from unspent budget (`remaining * percentage / 100.0`) and added them to the base budget.
+  - Recursively carried forward active category quotas and department budgets.
+  - Added strict bounds validation ensuring `carryoverPercentage` is between `0.0` and `100.0`.
+- **`tests/test_main.cpp`**:
+  - Added `testRollover()` verifying carryover math, reset spent usage counters, inherited quotas, and invalid percentage handling.
+
+### Terminal Commands Executed for Q10:
+- `g++ -std=c++17 -Wall -Wextra -Iinclude src/*.cpp tests/test_main.cpp -o bookmgmt_tests`: Compiled test executable directly.
+- `./bookmgmt_tests`: Verified unit test suite execution.
+- `git add include/ src/ tests/ README.md`: Staged updated files.
+- `git commit -m "Q10: Implemented year-end budget rollover with configurable carryover percentage"`: Saved local commit.
+- `git push origin main`: Uploaded commit to GitHub repository.

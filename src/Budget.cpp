@@ -1,5 +1,6 @@
 #include "bookmgmt/Budget.h"
 
+#include <cmath>
 #include <iomanip>
 #include <ostream>
 
@@ -159,6 +160,31 @@ void Budget::refundDepartment(const std::string& dept, ResourceCategory c, int u
         it->second.refund(c, units, cost, titleRemoved);
     }
     refund(c, units, cost, titleRemoved);
+}
+
+// Q10: Year-end rollover
+Budget Budget::rollover(Money nextYearBase, double carryoverPercentage) const {
+    if (carryoverPercentage < 0.0 || carryoverPercentage > 100.0) {
+        throw std::invalid_argument("Carryover percentage must be between 0 and 100");
+    }
+
+    std::int64_t unspentMinor = remaining().minorUnits();
+    std::int64_t carryoverMinor = static_cast<std::int64_t>(std::round(unspentMinor * (carryoverPercentage / 100.0)));
+    Money carryover = Money::fromMinor(carryoverMinor);
+
+    Budget nextBudget(nextYearBase + carryover);
+
+    // Carry forward quotas to the new budget
+    for (const auto& [cat, q] : quotas_) {
+        nextBudget.setQuota(cat, q);
+    }
+
+    // Carry forward department budgets recursively
+    for (const auto& [dept, b] : deptBudgets_) {
+        nextBudget.deptBudgets_.emplace(dept, b.rollover(b.total(), carryoverPercentage));
+    }
+
+    return nextBudget;
 }
 
 void Budget::print(std::ostream& os) const {

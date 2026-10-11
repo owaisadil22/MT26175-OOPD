@@ -14,7 +14,11 @@ namespace bookmgmt {
 struct Quota {
     int maxUnits = 0;              // maximum copies/seats that may be bought
     Money maxSpend;                // maximum money that may be spent
-    std::optional<int> maxTitles;  // Q7: maximum number of distinct titles allowed
+    std::optional<int> maxTitles = std::nullopt;  // Q7: maximum number of distinct titles allowed
+
+    Quota() = default;
+    Quota(int units, Money spend, std::optional<int> titles = std::nullopt)
+        : maxUnits(units), maxSpend(spend), maxTitles(titles) {}
 };
 
 struct Usage {
@@ -55,6 +59,9 @@ public:
     std::string checkDepartment(const std::string& dept, ResourceCategory c, int units, Money cost, bool isNewTitle = false) const;
     void commitDepartment(const std::string& dept, ResourceCategory c, int units, Money cost, bool isNewTitle = false);
     void refundDepartment(const std::string& dept, ResourceCategory c, int units, Money cost, bool titleRemoved = false);
+
+    // Q10: Year-end rollover
+    Budget rollover(Money nextYearBase, double carryoverPercentage) const;
 
     void print(std::ostream& os) const;
 
