@@ -311,6 +311,22 @@ static void testLendingManager() {
     CHECK(lm.activeElectronicSessions("P1", "R1") == 0);
 }
 
+// Q15 Test for Currency
+static void testCurrency() {
+    Money m1 = Money::of(100, 0, "USD");
+    Money m2 = Money::of(50, 0, "USD");
+    Money m3 = Money::of(50, 0, "EUR");
+
+    CHECK((m1 + m2) == Money::of(150, 0, "USD"));
+    CHECK(m1 > m2);
+
+    // Mismatched currency operations must throw invalid_argument
+    CHECK_THROWS(m1 + m3, std::invalid_argument);
+    CHECK_THROWS(m1 - m3, std::invalid_argument);
+    CHECK_THROWS(m1 == m3, std::invalid_argument);
+    CHECK_THROWS(m1 < m3, std::invalid_argument);
+}
+
 int main() {
     testMoney();
     testResourcesAndCost();
@@ -324,6 +340,7 @@ int main() {
     testAllOrNothingBatch();
     testVendors();
     testLendingManager();
+    testCurrency();
     std::cout << (g_checks - g_failures) << "/" << g_checks << " checks passed\n";
     return g_failures == 0 ? 0 : 1;
 }
