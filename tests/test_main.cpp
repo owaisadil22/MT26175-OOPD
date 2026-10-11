@@ -101,7 +101,7 @@ static void testCatalog() {
 
 static void testBudget() {
     Budget b(Money::of(1000));
-    b.setQuota(ResourceCategory::Book, {5, Money::of(400)});
+    b.setQuota(ResourceCategory::Book, Quota(5, Money::of(400)));
 
     CHECK(b.check(ResourceCategory::Book, 2, Money::of(200)).empty());
     CHECK(!b.check(ResourceCategory::Book, 6, Money::of(10)).empty());
@@ -130,7 +130,7 @@ static void testAcquisition() {
     c.emplace<ElectronicResource>("R1", "DB", "P", 2026, Money::of(10), "url",
                                   LicenseModel::AnnualSubscription, Money::of(50));
     Budget b(Money::of(500));
-    b.setQuota(ResourceCategory::Book, {3, Money::of(1000)});
+    b.setQuota(ResourceCategory::Book, Quota(3, Money::of(1000)));
     AcquisitionManager acq(c, b);
 
     CHECK(acq.quote("R1", 5) == Money::of(100));
@@ -166,7 +166,7 @@ static void testCategoryTitleLimits() {
     c.emplace<Book>("B2", "Book Two", std::vector<std::string>{"Author B"}, "222", "Publisher", 2021, Money::of(100));
 
     Budget b(Money::of(1000));
-    b.setQuota(ResourceCategory::Book, {10, Money::of(500), 1});
+    b.setQuota(ResourceCategory::Book, Quota(10, Money::of(500), 1));
     AcquisitionManager acq(c, b);
 
     CHECK(acq.canPurchase("B1", 1));
@@ -184,7 +184,7 @@ static void testCancellation() {
     c.emplace<Book>("B1", "Book One", std::vector<std::string>{"Author A"}, "111", "Publisher", 2020, Money::of(100));
 
     Budget b(Money::of(1000));
-    b.setQuota(ResourceCategory::Book, {5, Money::of(500)});
+    b.setQuota(ResourceCategory::Book, Quota(5, Money::of(500)));
     AcquisitionManager acq(c, b);
 
     const auto& order = acq.purchase("B1", 2);
@@ -209,7 +209,7 @@ static void testDepartmentBudgets() {
 
     Budget overallBudget(Money::of(2000));
     overallBudget.setDepartmentBudget("CS", Money::of(500));
-    overallBudget.setDepartmentQuota("CS", ResourceCategory::Book, {3, Money::of(300)});
+    overallBudget.setDepartmentQuota("CS", ResourceCategory::Book, Quota(3, Money::of(300)));
 
     AcquisitionManager acq(c, overallBudget);
 
@@ -225,10 +225,9 @@ static void testDepartmentBudgets() {
 
 static void testRollover() {
     Budget thisYear(Money::of(1000));
-    thisYear.setQuota(ResourceCategory::Book, {5, Money::of(500)});
-    thisYear.commit(ResourceCategory::Book, 2, Money::of(200)); // unspent = 800
+    thisYear.setQuota(ResourceCategory::Book, Quota(5, Money::of(500)));
+    thisYear.commit(ResourceCategory::Book, 2, Money::of(200));
 
-    // Carry over 50% of 800 = 400. New total = 1000 + 400 = 1400.
     Budget nextYear = thisYear.rollover(Money::of(1000), 50.0);
     CHECK(nextYear.total() == Money::of(1400));
     CHECK(nextYear.spent() == Money::of(0));
@@ -236,6 +235,26 @@ static void testRollover() {
 
     CHECK_THROWS(thisYear.rollover(Money::of(1000), -5.0), std::invalid_argument);
     CHECK_THROWS(thisYear.rollover(Money::of(1000), 105.0), std::invalid_argument);
+}
+
+static void testAllOrNothingBatch() {
+    Catalog c;
+    c.emplace<Book>("B1", "Book One", std::vector<std::string>{"Author A"}, "111", "Publisher", 2020, Money::of(100));
+    c.emplace<Book>("B2", "Book Two", std::vector<std::string>{"Author B"}, "222", "Publisher", 2021, Money::of(100));
+
+    Budget b(Money::of(250));
+    AcquisitionManager acq(c, b);
+
+    // B1 costs 100, B2 costs 200 (Total = 300, which exceeds total budget 250)
+    std::vector<PurchaseRequest> reqs = {{"B1", 1}, {"B2", 2}};
+
+    auto res = acq.processBatch(reqs, true);
+    CHECK(res.size() == 2);
+    CHECK(!res[0].approved);
+    CHECK(!res[1].approved);
+    CHECK(c.holdings("B1") == 0);
+    CHECK(c.holdings("B2") == 0);
+    CHECK(b.spent() == Money::of(0));
 }
 
 int main() {
@@ -248,6 +267,7 @@ int main() {
     testCancellation();
     testDepartmentBudgets();
     testRollover();
+    testAllOrNothingBatch();
     std::cout << (g_checks - g_failures) << "/" << g_checks << " checks passed\n";
     return g_failures == 0 ? 0 : 1;
 }

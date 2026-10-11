@@ -315,3 +315,23 @@ Implemented year-end budget rollover functionality, carrying forward a configura
 - `git add include/ src/ tests/ README.md`: Staged updated files.
 - `git commit -m "Q10: Implemented year-end budget rollover with configurable carryover percentage"`: Saved local commit.
 - `git push origin main`: Uploaded commit to GitHub repository.
+
+---
+
+## Question 11: All-or-Nothing Batch Processing
+
+Implemented an optional all-or-nothing policy for batch purchase processing.
+
+### Implementation Details:
+- **`include/bookmgmt/Acquisition.h` & `src/Acquisition.cpp`**:
+  - Updated `processBatch()` method signature to include a `bool allOrNothing = false` parameter.
+  - Implemented pre-validation dry run using a simulated budget when `allOrNothing` is enabled: if any request in the batch would fail (e.g., resource not found, invalid quantity, or exceeding cumulative quotas/budget), the entire batch is rejected with zero holdings added or budget committed.
+- **`tests/test_main.cpp`**:
+  - Added `testAllOrNothingBatch()` verifying that if a single request in a batch fails, all requests are marked as rejected and no changes persist.
+
+### Terminal Commands Executed for Q11:
+- `g++ -std=c++17 -Wall -Wextra -Iinclude src/*.cpp tests/test_main.cpp -o bookmgmt_tests`: Compiled unit test binary.
+- `./bookmgmt_tests`: Executed unit test suite and verified 100% check pass rate.
+- `git add include/ src/ tests/ README.md`: Staged updated source files and documentation.
+- `git commit -m "Q11: Implemented all-or-nothing option for acquisition batch processing"`: Created local commit.
+- `git push origin main`: Uploaded commits to GitHub repository.

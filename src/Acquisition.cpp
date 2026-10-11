@@ -107,7 +107,55 @@ const PurchaseRecord& AcquisitionManager::cancelOrder(std::size_t orderNo) {
 }
 
 std::vector<PurchaseRecord> AcquisitionManager::processBatch(
-    const std::vector<PurchaseRequest>& reqs) {
+    const std::vector<PurchaseRequest>& reqs, bool allOrNothing) {
+    
+    if (allOrNothing) {
+        Budget tempBudget = budget_;
+        bool anyFailed = false;
+
+        for (const auto& req : reqs) {
+            if (req.quantity <= 0) {
+                anyFailed = true;
+                break;
+            }
+            const Resource* r = catalog_.find(req.resourceId);
+            if (!r) {
+                anyFailed = true;
+                break;
+            }
+
+            Money cost = r->costFor(req.quantity);
+            bool isNewTitle = (catalog_.holdings(req.resourceId) == 0);
+
+            std::string why = req.department.empty()
+                ? tempBudget.check(r->category(), req.quantity, cost, isNewTitle)
+                : tempBudget.checkDepartment(req.department, r->category(), req.quantity, cost, isNewTitle);
+
+            if (!why.empty()) {
+                anyFailed = true;
+                break;
+            }
+
+            if (req.department.empty()) {
+                tempBudget.commit(r->category(), req.quantity, cost, isNewTitle);
+            } else {
+                tempBudget.commitDepartment(req.department, r->category(), req.quantity, cost, isNewTitle);
+            }
+        }
+
+        if (anyFailed) {
+            std::vector<PurchaseRecord> rejectedRecords;
+            for (const auto& req : reqs) {
+                const Resource* r = catalog_.find(req.resourceId);
+                Money cost = (r && req.quantity > 0) ? r->costFor(req.quantity) : Money::fromMinor(0);
+                rejectedRecords.push_back(
+                    record(r, req.resourceId, req.quantity, cost, false,
+                           "Batch processing rejected due to all-or-nothing policy", false, req.department));
+            }
+            return rejectedRecords;
+        }
+    }
+
     std::vector<PurchaseRecord> batchRecords;
     for (const auto& req : reqs) {
         const Resource* r = catalog_.find(req.resourceId);

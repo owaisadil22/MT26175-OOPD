@@ -41,10 +41,12 @@ public:
 
     const PurchaseRecord& purchase(const std::string& id, int quantity, const std::string& dept = "");
 
+    // Q8: Cancel an approved order
     const PurchaseRecord& cancelOrder(std::size_t orderNo);
 
+    // Q11: Add allOrNothing parameter (default false)
     std::vector<PurchaseRecord> processBatch(
-        const std::vector<PurchaseRequest>& reqs);
+        const std::vector<PurchaseRequest>& reqs, bool allOrNothing = false);
 
     const std::vector<PurchaseRecord>& history() const { return history_; }
 
