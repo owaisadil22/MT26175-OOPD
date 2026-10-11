@@ -40,7 +40,6 @@ public:
     const std::string& publisher() const { return publisher_; }
     int publicationYear() const { return publicationYear_; }
     
-    // Provide both accessors for compatibility across classes
     Money unitPrice() const { return baseUnitPrice_; }
     Money baseUnitPrice() const { return baseUnitPrice_; }
 

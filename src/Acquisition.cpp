@@ -13,7 +13,7 @@ AcquisitionManager::AcquisitionManager(Catalog& catalog, Budget& budget)
 
 Money AcquisitionManager::quote(const std::string& id, int quantity, const std::string& vendor) const {
     const Resource& r = catalog_.get(id);
-    if (!vendor.empty()) {
+    if (!vendor.empty() && vendor != "Default") {
         return r.costForVendor(vendor, quantity);
     }
     auto cheapest = r.cheapestVendor();
@@ -58,7 +58,7 @@ const PurchaseRecord& AcquisitionManager::purchase(const std::string& id, int qu
     if (!r) throw NotFoundError("Resource not found: " + id);
 
     std::string usedVendor = vendor;
-    if (usedVendor.empty()) {
+    if (usedVendor.empty() || usedVendor == "Default") {
         auto cheapest = r->cheapestVendor();
         usedVendor = cheapest.has_value() ? cheapest->vendorName : "Default";
     }
@@ -163,7 +163,7 @@ std::vector<PurchaseRecord> AcquisitionManager::processBatch(
                 const Resource* r = catalog_.find(req.resourceId);
                 Money cost = (r && req.quantity > 0) ? quote(req.resourceId, req.quantity, req.vendor) : Money::fromMinor(0);
                 std::string usedVendor = req.vendor;
-                if (usedVendor.empty() && r) {
+                if ((usedVendor.empty() || usedVendor == "Default") && r) {
                     auto cheapest = r->cheapestVendor();
                     usedVendor = cheapest.has_value() ? cheapest->vendorName : "Default";
                 }
@@ -193,7 +193,7 @@ std::vector<PurchaseRecord> AcquisitionManager::processBatch(
         }
 
         std::string usedVendor = req.vendor;
-        if (usedVendor.empty()) {
+        if (usedVendor.empty() || usedVendor == "Default") {
             auto cheapest = r->cheapestVendor();
             usedVendor = cheapest.has_value() ? cheapest->vendorName : "Default";
         }
