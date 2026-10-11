@@ -265,16 +265,50 @@ static void testVendors() {
     Budget budget(Money::of(1000));
     AcquisitionManager acq(c, budget);
 
-    // Auto-select cheapest vendor (DiscountBooks @ 80 each)
     CHECK(acq.quote("B1", 2) == Money::of(160));
     const auto& rec1 = acq.purchase("B1", 2);
     CHECK(rec1.vendor == "DiscountBooks");
     CHECK(rec1.cost == Money::of(160));
 
-    // Explicit vendor selection
     const auto& rec2 = acq.purchase("B1", 1, "", "ExpensiveCorp");
     CHECK(rec2.vendor == "ExpensiveCorp");
     CHECK(rec2.cost == Money::of(120));
+}
+
+static void testLendingManager() {
+    Catalog c;
+    c.emplace<Book>("B1", "Print Book", std::vector<std::string>{"Author"}, "123", "Pub", 2020, Money::of(100));
+    c.addHoldings("B1", 2); // 2 print copies held
+
+    c.emplace<ElectronicResource>("R1", "Online DB", "Pub", 2026, Money::of(50), "url");
+    c.addHoldings("R1", 1); // 1 seat held
+
+    LendingManager lm(c);
+
+    // Test Print Checkout & Return
+    lm.checkoutPrintCopy("P1", "B1");
+    CHECK(lm.activePrintLoans("P1", "B1") == 1);
+    CHECK(lm.totalBorrowedPrintCopies("B1") == 1);
+
+    lm.checkoutPrintCopy("P2", "B1");
+    CHECK(lm.totalBorrowedPrintCopies("B1") == 2);
+
+    // Over limit checkout attempt
+    CHECK_THROWS(lm.checkoutPrintCopy("P3", "B1"), std::runtime_error);
+
+    lm.returnPrintCopy("P1", "B1");
+    CHECK(lm.activePrintLoans("P1", "B1") == 0);
+    CHECK(lm.totalBorrowedPrintCopies("B1") == 1);
+
+    // Test Electronic Sessions
+    lm.openElectronicSession("P1", "R1");
+    CHECK(lm.activeElectronicSessions("P1", "R1") == 1);
+
+    // Over seat limit session attempt
+    CHECK_THROWS(lm.openElectronicSession("P2", "R1"), std::runtime_error);
+
+    lm.closeElectronicSession("P1", "R1");
+    CHECK(lm.activeElectronicSessions("P1", "R1") == 0);
 }
 
 int main() {
@@ -289,6 +323,7 @@ int main() {
     testRollover();
     testAllOrNothingBatch();
     testVendors();
+    testLendingManager();
     std::cout << (g_checks - g_failures) << "/" << g_checks << " checks passed\n";
     return g_failures == 0 ? 0 : 1;
 }

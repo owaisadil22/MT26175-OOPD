@@ -359,3 +359,25 @@ Implemented multi-vendor pricing support, enabling resources to record distinct 
 - `git add include/ src/ tests/ README.md`: Staged updated files.
 - `git commit -m "Q12: Implemented multi-vendor pricing and cheapest vendor auto-selection"`: Saved local commit.
 - `git push origin main`: Uploaded changes to GitHub repository.
+
+---
+
+## Question 14: Lending System
+
+Implemented patron lending for print copies and active session tracking for electronic resource seats.
+
+### Implementation Details:
+- **`include/bookmgmt/LendingManager.h`**:
+  - Implemented `checkoutPrintCopy()` and `returnPrintCopy()`, enforcing copy limits against `catalog.holdings()`.
+  - Implemented `openElectronicSession()` and `closeElectronicSession()`, enforcing seat limits against digital resource holdings.
+- **`include/bookmgmt/bookmgmt.h`**:
+  - Included `LendingManager.h` umbrella header.
+- **`tests/test_main.cpp`**:
+  - Added `testLendingManager()` unit test verifying checkout limits and session seat management.
+
+### Terminal Commands Executed for Q14:
+- `g++ -std=c++17 -Wall -Wextra -Iinclude src/*.cpp tests/test_main.cpp -o bookmgmt_tests`: Compiled test binary.
+- `./bookmgmt_tests`: Verified 100% test suite pass rate.
+- `git add include/ src/ tests/ README.md`: Staged updated files.
+- `git commit -m "Q14: Implemented lending manager for print checkouts and electronic seats"`: Saved local commit.
+- `git push origin main`: Uploaded changes to GitHub repository.
